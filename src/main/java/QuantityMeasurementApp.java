@@ -1,32 +1,33 @@
+package com.measurement;
+
 public class QuantityMeasurementApp {
-    private final double value;
-    private final LengthUnit unit;
 
-    public Quantity(double value, LengthUnit unit) {
-        this.value = value;
-        this.unit = unit;
+    public static void main(String[] args) {
+        System.out.println("=== UC4: Extended Unit Support (DRY Principle) ===");
+
+        // Yard to Feet Comparison
+        compare(new Quantity(1.0, LengthUnit.YARDS), new Quantity(3.0, LengthUnit.FEET));
+
+        // Yard to Inch Comparison
+        compare(new Quantity(1.0, LengthUnit.YARDS), new Quantity(36.0, LengthUnit.INCH));
+
+        // Inch to Inch Comparison
+        compare(new Quantity(1.0, LengthUnit.INCH), new Quantity(1.0, LengthUnit.INCH));
+
+        // Centimeter to Inch Comparison (UC4 specific)
+        compare(new Quantity(1.0, LengthUnit.CENTIMETER), new Quantity(0.393701, LengthUnit.INCH));
+
+        // Centimeter to Centimeter Comparison
+        compare(new Quantity(2.0, LengthUnit.CENTIMETER), new Quantity(2.0, LengthUnit.CENTIMETER));
+
+        // Negative Test: Yard to Feet
+        compare(new Quantity(1.0, LengthUnit.YARDS), new Quantity(2.0, LengthUnit.FEET));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        // 1. Reference Check (Reflexive)
-        if (this == o) return true;
-
-        // 2. Null and Type Check
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Quantity that = (Quantity) o;
-
-        // 3. Comparison logic using the base unit (Inches)
-        double value1 = this.unit.convertToBase(this.value);
-        double value2 = that.unit.convertToBase(that.value);
-
-        return Double.compare(value1, value2) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        // Best practice: always override hashCode when overriding equals
-        return Double.hashCode(unit.convertToBase(value));
+    private static void compare(Quantity q1, Quantity q2) {
+        boolean result = q1.equals(q2);
+        System.out.println("Input:  Quantity(" + q1 + ") and Quantity(" + q2 + ")");
+        System.out.println("Output: Equal (" + result + ")");
+        System.out.println("---------------------------------------------------------");
     }
 }
