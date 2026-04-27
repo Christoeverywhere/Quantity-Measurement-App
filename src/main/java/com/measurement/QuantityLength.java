@@ -1,9 +1,5 @@
 package com.measurement;
 
-/**
- * Immutable class representing a length quantity.
- * Supports UC5 unit-to-unit conversion.
- */
 public final class QuantityLength {
 
     private final double value;
@@ -11,53 +7,37 @@ public final class QuantityLength {
 
     private static final double EPSILON = 1e-6;
 
-    /**
-     * Constructor
-     */
-    public QuantityLength(double value,
-                          LengthUnit unit) {
+    public QuantityLength(double value, LengthUnit unit) {
 
-        validateValue(value);
-        validateUnit(unit);
+        if (unit == null)
+            throw new IllegalArgumentException("Unit cannot be null");
+
+        if (!Double.isFinite(value))
+            throw new IllegalArgumentException("Invalid value");
 
         this.value = value;
         this.unit = unit;
     }
 
-    /**
-     * UC5 Static Conversion Method
-     */
-    public static double convert(
-            double value,
-            LengthUnit source,
-            LengthUnit target) {
-
-        validateValue(value);
-        validateUnit(source);
-        validateUnit(target);
-
-        // Convert source → base (feet)
-        double valueInFeet =
-                value * source.getConversionFactor();
-
-        // Convert base → target
-        double result =
-                valueInFeet /
-                        target.getConversionFactor();
-
-        return result;
+    public double getValue() {
+        return value;
     }
 
-    /**
-     * Instance conversion method
-     */
-    public QuantityLength convertTo(
-            LengthUnit targetUnit) {
+    public LengthUnit getUnit() {
+        return unit;
+    }
+
+    // UC5 Convert
+    public QuantityLength convertTo(LengthUnit targetUnit) {
+
+        if (targetUnit == null)
+            throw new IllegalArgumentException("Target unit cannot be null");
+
+        double baseValue =
+                unit.convertToBaseUnit(value);
 
         double convertedValue =
-                convert(value,
-                        unit,
-                        targetUnit);
+                targetUnit.convertFromBaseUnit(baseValue);
 
         return new QuantityLength(
                 convertedValue,
@@ -65,43 +45,46 @@ public final class QuantityLength {
         );
     }
 
-    /**
-     * Convert to base unit
-     */
-    private double toBaseUnit() {
+    // UC6 Add (default = first unit)
+    public QuantityLength add(QuantityLength other) {
 
-        return value *
-                unit.getConversionFactor();
+        return add(other, this.unit);
     }
 
-    /**
-     * Validation methods
-     */
-    private static void validateValue(
-            double value) {
+    // UC7 Add with explicit target unit
+    public QuantityLength add(
+            QuantityLength other,
+            LengthUnit targetUnit) {
 
-        if (!Double.isFinite(value)) {
+        if (other == null)
+            throw new IllegalArgumentException("Other length cannot be null");
 
-            throw new IllegalArgumentException(
-                    "Value must be finite"
-            );
-        }
+        if (targetUnit == null)
+            throw new IllegalArgumentException("Target unit cannot be null");
+
+        // Convert both → base unit
+        double base1 =
+                unit.convertToBaseUnit(value);
+
+        double base2 =
+                other.unit.convertToBaseUnit(
+                        other.value);
+
+        // Add
+        double baseSum = base1 + base2;
+
+        // Convert → target unit
+        double result =
+                targetUnit.convertFromBaseUnit(
+                        baseSum);
+
+        return new QuantityLength(
+                result,
+                targetUnit
+        );
     }
 
-    private static void validateUnit(
-            LengthUnit unit) {
-
-        if (unit == null) {
-
-            throw new IllegalArgumentException(
-                    "Unit cannot be null"
-            );
-        }
-    }
-
-    /**
-     * equals() override
-     */
+    // Equality
     @Override
     public boolean equals(Object obj) {
 
@@ -114,103 +97,14 @@ public final class QuantityLength {
         QuantityLength other =
                 (QuantityLength) obj;
 
-        return Math.abs(
-                this.toBaseUnit()
-                        - other.toBaseUnit()
-        ) < EPSILON;
-    }
+        double base1 =
+                unit.convertToBaseUnit(value);
 
-    /**
-     * toString() override
-     */
-    @Override
-    public String toString() {
+        double base2 =
+                other.unit.convertToBaseUnit(
+                        other.value);
 
-        return value + " " + unit;
-    }
-
-    public double getValue() {
-        return value;
-    }
-
-    public LengthUnit getUnit() {
-        return unit;
-    }
-    public QuantityLength add(QuantityLength other) {
-
-        // Validate
-        if (other == null) {
-            throw new IllegalArgumentException("Second length cannot be null");
-        }
-
-        validateValue(this.value);
-        validateValue(other.value);
-
-        validateUnit(this.unit);
-        validateUnit(other.unit);
-
-        // Convert both to base unit (feet)
-        double thisInFeet =
-                this.value * this.unit.getConversionFactor();
-
-        double otherInFeet =
-                other.value * other.unit.getConversionFactor();
-
-        // Add values in base unit
-        double sumInFeet = thisInFeet + otherInFeet;
-
-        // Convert back to unit of first operand
-        double resultValue =
-                sumInFeet / this.unit.getConversionFactor();
-
-        // Return new object (immutability)
-        return new QuantityLength(resultValue, this.unit);
-    }
-    public static QuantityLength add(
-            QuantityLength a,
-            QuantityLength b,
-            LengthUnit targetUnit) {
-
-        // Validation
-        if (a == null || b == null) {
-            throw new IllegalArgumentException(
-                    "Lengths cannot be null");
-        }
-
-        if (targetUnit == null) {
-            throw new IllegalArgumentException(
-                    "Target unit cannot be null");
-        }
-
-        validateValue(a.value);
-        validateValue(b.value);
-
-        validateUnit(a.unit);
-        validateUnit(b.unit);
-        validateUnit(targetUnit);
-
-        // Convert both to base unit (feet)
-
-        double aFeet =
-                a.value * a.unit.getConversionFactor();
-
-        double bFeet =
-                b.value * b.unit.getConversionFactor();
-
-        // Add in base unit
-
-        double sumFeet = aFeet + bFeet;
-
-        // Convert to target unit
-
-        double resultValue =
-                sumFeet / targetUnit.getConversionFactor();
-
-        // Return new object
-
-        return new QuantityLength(
-                resultValue,
-                targetUnit
-        );
+        return Math.abs(base1 - base2)
+                < EPSILON;
     }
 }
