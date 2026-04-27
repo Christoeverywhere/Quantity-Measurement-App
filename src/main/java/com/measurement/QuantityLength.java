@@ -166,4 +166,51 @@ public final class QuantityLength {
         // Return new object (immutability)
         return new QuantityLength(resultValue, this.unit);
     }
+    public static QuantityLength add(
+            QuantityLength a,
+            QuantityLength b,
+            LengthUnit targetUnit) {
+
+        // Validation
+        if (a == null || b == null) {
+            throw new IllegalArgumentException(
+                    "Lengths cannot be null");
+        }
+
+        if (targetUnit == null) {
+            throw new IllegalArgumentException(
+                    "Target unit cannot be null");
+        }
+
+        validateValue(a.value);
+        validateValue(b.value);
+
+        validateUnit(a.unit);
+        validateUnit(b.unit);
+        validateUnit(targetUnit);
+
+        // Convert both to base unit (feet)
+
+        double aFeet =
+                a.value * a.unit.getConversionFactor();
+
+        double bFeet =
+                b.value * b.unit.getConversionFactor();
+
+        // Add in base unit
+
+        double sumFeet = aFeet + bFeet;
+
+        // Convert to target unit
+
+        double resultValue =
+                sumFeet / targetUnit.getConversionFactor();
+
+        // Return new object
+
+        return new QuantityLength(
+                resultValue,
+                targetUnit
+        );
+    }
 }
