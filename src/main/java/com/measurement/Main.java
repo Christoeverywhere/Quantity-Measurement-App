@@ -4,26 +4,33 @@ public class Main {
 
     public static void main(String[] args) {
 
-        double result =
-                QuantityLength.convert(
+        QuantityWeight w1 =
+                new QuantityWeight(
                         1.0,
-                        LengthUnit.FEET,
-                        LengthUnit.INCHES
-                );
+                        WeightUnit.KILOGRAM);
 
-        System.out.println("1 foot = " + result + " inches");
-
-        // Example object usage
-        QuantityLength length =
-                new com.measurement.QuantityLength(2.0, LengthUnit.YARDS);
-
-        QuantityLength converted =
-                length.convertTo(LengthUnit.FEET);
+        QuantityWeight w2 =
+                new QuantityWeight(
+                        1000.0,
+                        WeightUnit.GRAM);
 
         System.out.println(
-                "2 yards = " +
-                        converted.getValue() +
-                        " feet"
+                w1.equals(w2)
+        );
+
+        QuantityWeight result =
+                w1.add(w2);
+
+        System.out.println(
+                result
+        );
+
+        QuantityWeight pounds =
+                w1.convertTo(
+                        WeightUnit.POUND);
+
+        System.out.println(
+                pounds
         );
     }
 }
