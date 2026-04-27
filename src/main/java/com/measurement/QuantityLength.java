@@ -136,4 +136,34 @@ public final class QuantityLength {
     public LengthUnit getUnit() {
         return unit;
     }
+    public QuantityLength add(QuantityLength other) {
+
+        // Validate
+        if (other == null) {
+            throw new IllegalArgumentException("Second length cannot be null");
+        }
+
+        validateValue(this.value);
+        validateValue(other.value);
+
+        validateUnit(this.unit);
+        validateUnit(other.unit);
+
+        // Convert both to base unit (feet)
+        double thisInFeet =
+                this.value * this.unit.getConversionFactor();
+
+        double otherInFeet =
+                other.value * other.unit.getConversionFactor();
+
+        // Add values in base unit
+        double sumInFeet = thisInFeet + otherInFeet;
+
+        // Convert back to unit of first operand
+        double resultValue =
+                sumInFeet / this.unit.getConversionFactor();
+
+        // Return new object (immutability)
+        return new QuantityLength(resultValue, this.unit);
+    }
 }
